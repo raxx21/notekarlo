@@ -22,8 +22,7 @@ Example final MoM: [docs/sample-mom.md](docs/sample-mom.md) (from a synthetic te
    ```bash
    git clone https://github.com/raxx21/notekarlo.git ~/notekarlo
    ```
-   Private repo? Log in once first with `gh auth login` (GitHub CLI) or use a personal access token as the
-   password. Later updates: `cd ~/notekarlo && git pull`.
+   Later updates: `cd ~/notekarlo && git pull`.
    No git? On the Mac run `./scripts/package.sh` → `dist/notekarlo.zip` (~2 MB); copy it over and unzip.
 2. **Make sure these exist** (most Ubuntu laptops already have them):
    ```bash
