@@ -1,0 +1,18 @@
+# Per-computer stuff — start.sh recreates it
+.venv/
+bin/
+models/
+dist/
+__pycache__/
+*.pyc
+.DS_Store
+.claude/
+
+# Your private data — never committed
+data/
+meetings/
+
+# Test audio: only the two sample tracks used by the self-test are kept
+tests/audio/*
+!tests/audio/them.wav
+!tests/audio/me.wav

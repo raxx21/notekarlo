@@ -1,0 +1,8 @@
+# Apple-silicon Macs: MLX Whisper on the GPU. mlx-whisper itself is installed with --no-deps by
+# start.sh (it lists torch, which transcription does not need — saves ~400 MB). These are its real deps.
+mlx>=0.20
+numba>=0.60
+tqdm
+more-itertools
+tiktoken
+scipy

@@ -1,0 +1,3 @@
+# Linux (and Intel Macs / Windows): faster-whisper — CPU int8, or NVIDIA GPU via CUDA if present.
+# Bundles PyAV, so recordings can be imported without a system ffmpeg.
+faster-whisper>=1.1

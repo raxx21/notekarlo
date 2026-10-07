@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NoteKarLo</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23e8590c'/><path d='M9 22l2-6 9-9 4 4-9 9-6 2z' fill='white'/></svg>">
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo" aria-hidden="true">
+        <svg viewBox="0 0 32 32" width="26" height="26"><rect width="32" height="32" rx="8" fill="var(--brand)"/><path d="M9 22l2-6 9-9 4 4-9 9-6 2z" fill="#fff"/></svg>
+      </span>
+      <span class="brand-name">NoteKarLo</span>
+      <span class="live-dot hidden" id="liveDot" title="Listening">LIVE</span>
+    </div>
+    <div class="meeting-title" id="mtTitle"></div>
+    <div class="status">
+      <span class="chip" id="chipStt" title="Speech-to-text (runs on your Mac)">Speech model…</span>
+      <span class="chip" id="chipNotes" title="Claude notes engine">Claude</span>
+      <span class="timer hidden" id="timer">00:00</span>
+    </div>
+    <nav class="actions">
+      <button class="ghost" id="btnNew" hidden>New meeting</button>
+      <button class="ghost" id="btnHistory">History</button>
+      <button class="ghost icon" id="btnTheme" title="Light / dark">◐</button>
+      <button class="danger hidden" id="btnStop">Stop meeting</button>
+    </nav>
+  </header>
+
+  <div class="banner hidden" id="banner"><span id="bannerText"></span><span class="banner-actions" id="bannerActions"></span><button class="ghost icon" id="bannerClose" aria-label="Dismiss">✕</button></div>
+
+  <main>
+    <!-- ───────── Setup ───────── -->
+    <section id="setup" class="setup">
+      <div class="setup-card">
+        <h1>Meeting shuru karein</h1>
+        <p class="sub">NoteKarLo meeting sunta hai aur live, saaf Hinglish notes banata hai — feedback, to-dos, decisions sab. Aap bas copy kariye.</p>
+
+        <label class="field">
+          <span>Meeting title</span>
+          <input id="fTitle" placeholder="e.g. Weekly demo review with CEO" autocomplete="off">
+        </label>
+
+        <fieldset class="field">
+          <legend>Kahan se sunna hai?</legend>
+          <label class="check">
+            <input type="checkbox" id="fMic" checked>
+            <span><b>My microphone</b> <small id="micLabelHint">— your voice, labelled “Me”</small></span>
+          </label>
+          <select id="fMicDevice" class="mic-select"></select>
+
+          <div class="radio-cards" id="srcCards">
+            <label class="radio-card">
+              <input type="radio" name="msrc" value="tab" checked>
+              <span class="rc-title">Chrome tab</span>
+              <span class="rc-sub">Google Meet, Teams web, Zoom web — pick the meeting tab &amp; tick <i>Also share tab audio</i></span>
+            </label>
+            <label class="radio-card" id="srcSystemCard">
+              <input type="radio" name="msrc" value="system">
+              <span class="rc-title">System audio</span>
+              <span class="rc-sub" id="srcSystemSub">Zoom / Teams / Slack desktop app — captures everything this computer plays</span>
+            </label>
+            <label class="radio-card">
+              <input type="radio" name="msrc" value="none">
+              <span class="rc-title">Room mic only</span>
+              <span class="rc-sub">Meeting is on another device — this laptop's mic listens to the speakers</span>
+            </label>
+          </div>
+        </fieldset>
+
+        <details class="field" id="ctxDetails">
+          <summary>Context — names &amp; terms (better spellings)</summary>
+          <div class="grid2">
+            <label class="field"><span>My name</span><input id="fName" autocomplete="off"></label>
+            <label class="field"><span>People in the meeting</span><input id="fPeople" placeholder="Manager: Amit, CEO: Priya" autocomplete="off"></label>
+          </div>
+          <label class="field"><span>Glossary — product, client &amp; tech words</span><textarea id="fGlossary" rows="2" placeholder="e.g. NoteKarLo, Razorpay, onboarding funnel, Kubernetes"></textarea></label>
+          <label class="field"><span>What is this meeting about? (optional)</span><textarea id="fAgenda" rows="2" placeholder="e.g. Demo of new dashboard; expecting feedback on UI and pricing page"></textarea></label>
+        </details>
+
+        <details class="field">
+          <summary>Settings</summary>
+          <div class="grid3">
+            <label class="field"><span>Notes model</span><select id="fModel"></select></label>
+            <label class="field"><span>Update speed</span>
+              <select id="fSpeed">
+                <option value="fast">Fast (~12 s)</option>
+                <option value="balanced">Balanced (~25 s)</option>
+                <option value="saver">Quota saver (~60 s)</option>
+              </select>
+            </label>
+            <label class="field"><span>Transcript script</span>
+              <select id="fStt">
+                <option value="hinglish">Hinglish (Roman letters)</option>
+                <option value="auto">Auto (Hindi in Devanagari)</option>
+              </select>
+            </label>
+          </div>
+          <label class="field" id="sttModelField" hidden><span>Speech model on this laptop</span>
+            <select id="fSttModel"></select>
+          </label>
+        </details>
+
+        <button class="primary big" id="btnStart">
+          <span class="dot"></span> Start listening
+        </button>
+        <p class="tiny">Audio is transcribed on this computer. Only text goes to Claude through your own Claude CLI login.</p>
+        <div class="setup-foot">
+          <button class="link" id="btnImport">Meeting record ki thi? Recording se notes banao →</button>
+          <input type="file" id="fileImport" accept="audio/*,video/*" hidden>
+        </div>
+      </div>
+    </section>
+
+    <!-- ───────── Live ───────── -->
+    <section id="live" class="live hidden">
+      <div class="notes-pane">
+        <div class="topic-bar">
+          <div class="topic"><span class="label">Abhi topic</span><span id="topic">Sun raha hoon…</span></div>
+          <p class="summary" id="summary"></p>
+        </div>
+
+        <div class="toolbar" id="toolbar">
+          <button class="pin" id="btnPin" title="Boss said 'note this down'? Press N">📌 Note this <kbd>N</kbd></button>
+          <button id="btnCopyAll">Copy all notes</button>
+          <button class="ghost" id="btnRefresh" title="Ask Claude to update notes right now">Update now</button>
+          <button class="ghost" id="btnBig" title="Large text for screen sharing (B)">Big text <kbd>B</kbd></button>
+          <span class="updated" id="updatedAt"></span>
+        </div>
+
+        <div class="sections" id="sections"></div>
+
+        <div class="mom hidden" id="momBox">
+          <div class="mom-head">
+            <h2>Final Minutes of Meeting</h2>
+            <div class="mom-actions">
+              <button id="btnCopyMom">Copy MoM</button>
+              <button class="ghost" id="btnRegenMom">Regenerate</button>
+              <button class="ghost" id="btnOpenFolder">Open folder</button>
+            </div>
+          </div>
+          <article class="md" id="momText"></article>
+        </div>
+      </div>
+
+      <aside class="side" id="side">
+        <div class="meters" id="meters"></div>
+        <div class="side-head">
+          <h3>Live transcript</h3>
+          <span class="muted" id="queueInfo"></span>
+        </div>
+        <div class="transcript" id="transcript">
+          <p class="empty">Jaise hi koi bolega, yahan dikhega…</p>
+        </div>
+        <div class="tools">
+          <div class="tool">
+            <h4>Fix my Hinglish</h4>
+            <textarea id="fixIn" rows="2" placeholder="Apna rough note likho, main sahi kar dunga…"></textarea>
+            <div class="tool-row"><button id="btnFix">Fix spelling &amp; grammar</button></div>
+            <div class="out hidden" id="fixOut"></div>
+          </div>
+          <div class="tool">
+            <h4>Ask about this meeting</h4>
+            <div class="tool-row">
+              <input id="askIn" placeholder="CEO ne pricing pe kya bola?" autocomplete="off">
+              <button id="btnAsk">Ask</button>
+            </div>
+            <div class="out hidden" id="askOut"></div>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <!-- ───────── History ───────── -->
+    <section id="history" class="history hidden">
+      <div class="history-head">
+        <button class="ghost" id="btnBack">← Back</button>
+        <h2>Past meetings</h2>
+      </div>
+      <div id="historyList" class="history-list"></div>
+      <div id="historyDetail" class="history-detail hidden"></div>
+    </section>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script type="module" src="/static/app.js"></script>
+</body>
+</html>

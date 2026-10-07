@@ -1,0 +1,6 @@
+# Shared by every OS. start.sh also installs requirements-mac.txt or requirements-linux.txt.
+fastapi>=0.115
+uvicorn[standard]>=0.30
+websockets>=13
+numpy>=1.24
+huggingface_hub>=0.24
